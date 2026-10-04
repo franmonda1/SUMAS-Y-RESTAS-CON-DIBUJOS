@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Pizarra escolar interactiva para aprender a sumar y restar con dibujos, diseñada especialmente para paneles táctiles y PDI">
+  <title>Pizarra Escolar: Sumas y Restas con Dibujos</title>
+
+  <!-- Tipografías de tiza escolar y UI amigable -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Fredoka:wght@500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Lienzo de confeti para celebrar aciertos -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div id="app-container">
+    <!-- Marco de madera realista de pizarra escolar -->
+    <div class="blackboard-frame">
+      <!-- Remaches esquineros de latón -->
+      <div class="brass-corner corner-tl"></div>
+      <div class="brass-corner corner-tr"></div>
+      <div class="brass-corner corner-bl"></div>
+      <div class="brass-corner corner-br"></div>
+
+      <!-- Superficie de pizarra verde con tiza -->
+      <div class="blackboard-canvas">
+        
+        <!-- BARRA DE CONTROL COMPACTA (MENÚS DISCRETOS PARA DAR MÁXIMO PROTAGONISMO A LOS DIBUJOS) -->
+        <header class="top-toolbar">
+          <div class="toolbar-brand">
+            <span class="chalk-icon">🖍️</span>
+            <span class="board-title">Pizarra</span>
+          </div>
+
+          <div class="toolbar-controls">
+            <!-- Selector Sumas / Restas -->
+            <div class="control-group">
+              <button class="toggle-btn active" id="btn-op-add" title="Modo Sumas">➕ Sumas</button>
+              <button class="toggle-btn" id="btn-op-sub" title="Modo Restas">➖ Restas</button>
+            </div>
+
+            <!-- Selector Límite (Hasta 10 o Hasta 19) -->
+            <div class="control-group">
+              <button class="toggle-btn active" id="btn-max-10" title="Números hasta 10">Hasta 10</button>
+              <button class="toggle-btn" id="btn-max-19" title="Hasta 19 con llevadas">Hasta 19</button>
+            </div>
+
+            <!-- Selector de 2 o 3 Sumandos (solo visible en Sumas) -->
+            <div class="control-group" id="group-summands">
+              <button class="toggle-btn active" id="btn-sum-2" title="2 Sumandos">2 Sumandos</button>
+              <button class="toggle-btn" id="btn-sum-3" title="3 Sumandos">3 Sumandos</button>
+            </div>
+
+            <!-- Botón Generar de forma aleatoria -->
+            <button class="chalk-btn btn-random" id="btn-random-problem" title="Generar un nuevo ejercicio aleatorio">
+              🎲 Nueva Operación
+            </button>
+          </div>
+
+          <div class="toolbar-tools">
+            <button class="chalk-btn btn-wood" id="btn-manual-mode" title="Configurar operación manualmente de forma oculta">
+              👩‍🏫 Profe
+            </button>
+            <button class="chalk-btn btn-wood btn-icon-only" id="btn-sound" title="Sonido activado / desactivado">
+              🔊
+            </button>
+            <button class="chalk-btn btn-wood btn-icon-only" id="btn-fullscreen" title="Pantalla completa">
+              🖥️
+            </button>
+          </div>
+        </header>
+
+        <!-- CONTENIDO Y PIZARRA DE JUEGO (PROTAGONISMO TOTAL PARA LOS DIBUJOS) -->
+        <main class="game-content">
+          <!-- Banner informativo de Modo Manual -->
+          <div class="manual-mode-banner" id="manual-banner">
+            <span>⚙️ <strong>Modo Maestro/a Activo:</strong> Operación personalizada en la pizarra.</span>
+            <button class="btn-small-wood" id="btn-exit-manual">Volver a modo aleatorio</button>
+          </div>
+
+          <!-- ZONA DE DIBUJOS GIGANTES INTERACTIVOS (CONTEO Y TACHADO) -->
+          <section class="drawings-stage" id="drawings-stage" aria-label="Dibujos para contar o tachar">
+            <!-- Se generará dinámicamente con animales, frutas, objetos a gran tamaño -->
+          </section>
+
+          <!-- RECUADROS DE LA ECUACIÓN MATEMÁTICA -->
+          <section class="equation-stage" id="equation-stage" aria-label="Ecuación matemática con recuadros táctiles">
+            <!-- Se generará dinámicamente con los números interactivos -->
+          </section>
+
+          <!-- BARRA DE ACCIONES Y FEEDBACK -->
+          <section class="action-row">
+            <!-- Mensaje de felicitación o aviso -->
+            <div class="feedback-banner" id="feedback-banner" role="status"></div>
+
+            <div class="action-buttons-group">
+              <!-- Botón Comprobar -->
+              <button class="chalk-btn btn-check" id="btn-check">
+                ✔️ ¡Comprobar!
+              </button>
+
+              <!-- Botón Intentar de nuevo (visible cuando se equivocan) -->
+              <button class="chalk-btn btn-retry" id="btn-retry">
+                🔄 Intentar de nuevo
+              </button>
+
+              <!-- Botón Siguiente Operación (visible al acertar) -->
+              <button class="chalk-btn btn-next" id="btn-next">
+                ⭐ ¡Siguiente Operación!
+              </button>
+            </div>
+          </section>
+        </main>
+
+      </div><!-- /.blackboard-canvas -->
+
+      <!-- REPISA PORTA-TIZAS Y BORRADOR EN LA BASE -->
+      <footer class="chalk-tray">
+        <div class="tray-chalks">
+          <div class="chalk-piece chalk-white-piece" title="Tiza Blanca"></div>
+          <div class="chalk-piece chalk-blue-piece" title="Tiza Azul (Unidades)"></div>
+          <div class="chalk-piece chalk-red-piece" title="Tiza Roja (Decenas)"></div>
+          <div class="chalk-piece chalk-yellow-piece" title="Tiza Amarilla"></div>
+          <div class="chalk-piece chalk-green-piece" title="Tiza Verde"></div>
+        </div>
+        <div class="chalk-eraser" title="Borrador de pizarra tradicional">
+          <div class="eraser-wood"></div>
+          <div class="eraser-felt"></div>
+        </div>
+      </footer>
+    </div><!-- /.blackboard-frame -->
+  </div><!-- /#app-container -->
+
+  <!-- ==========================================================================
+       TECLADO FLOTANTE TÁCTIL (FLOATING KEYPAD)
+       ========================================================================== -->
+  <div class="floating-keypad-backdrop" id="keypad-backdrop"></div>
+
+  <aside class="floating-keypad" id="floating-keypad" aria-label="Teclado numérico táctil">
+    <div class="keypad-header" id="keypad-drag-header">
+      <span class="keypad-title" id="keypad-title">✏️ Escribe el número</span>
+      <button type="button" class="keypad-close" id="keypad-close-btn" aria-label="Cerrar teclado" title="Cerrar teclado">
+        ✕
+      </button>
+    </div>
+
+    <!-- Pantalla del teclado -->
+    <div class="keypad-display" id="keypad-display">
+      <span class="box-placeholder">_</span>
+    </div>
+
+    <!-- Rejilla de teclas táctiles con números grandes -->
+    <div class="keypad-grid">
+      <button type="button" class="key-btn key-num" data-key="1">1</button>
+      <button type="button" class="key-btn key-num" data-key="2">2</button>
+      <button type="button" class="key-btn key-num" data-key="3">3</button>
+
+      <button type="button" class="key-btn key-num" data-key="4">4</button>
+      <button type="button" class="key-btn key-num" data-key="5">5</button>
+      <button type="button" class="key-btn key-num" data-key="6">6</button>
+
+      <button type="button" class="key-btn key-num" data-key="7">7</button>
+      <button type="button" class="key-btn key-num" data-key="8">8</button>
+      <button type="button" class="key-btn key-num" data-key="9">9</button>
+
+      <button type="button" class="key-btn key-action key-backspace" id="key-backspace" title="Borrar última cifra">⌫</button>
+      <button type="button" class="key-btn key-num" data-key="0">0</button>
+      <button type="button" class="key-btn key-action key-confirm" id="key-confirm" title="Aceptar y cerrar teclado">OK ✔</button>
+    </div>
+  </aside>
+
+  <!-- ==========================================================================
+       MODAL DE MODO MANUAL DOCENTE (CONFIGURACIÓN OCULTA)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="manual-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">👩‍🏫 Modo Manual (Docente)</h2>
+        <button type="button" class="keypad-close" id="btn-close-modal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 14px;">
+          Configura una operación a medida. En la pizarra se crearán los dibujos correspondientes para que los alumnos cuenten, tachen y resuelvan.
+        </p>
+
+        <!-- Selector de Operación en el modal -->
+        <div class="modal-form-group">
+          <label class="form-label">Tipo de Operación:</label>
+          <div class="segmented-control">
+            <button type="button" class="segment-btn active" id="manual-op-add">➕ Suma</button>
+            <button type="button" class="segment-btn" id="manual-op-sub">➖ Resta</button>
+          </div>
+        </div>
+
+        <!-- Selector de sumandos en el modal -->
+        <div class="modal-form-group" id="manual-sum-count-group">
+          <label class="form-label">Cantidad de Sumandos:</label>
+          <div class="segmented-control">
+            <button type="button" class="segment-btn active" id="manual-sum-2">2 Sumandos</button>
+            <button type="button" class="segment-btn" id="manual-sum-3">3 Sumandos</button>
+          </div>
+        </div>
+
+        <!-- Casillas de números para el profesor -->
+        <div class="modal-form-group">
+          <label class="form-label">Introduce los números de la operación:</label>
+          <div class="manual-inputs-row" id="manual-inputs-container">
+            <!-- Se renderizan los inputs numéricos -->
+          </div>
+        </div>
+
+        <!-- Selector de tema de dibujos -->
+        <div class="modal-form-group">
+          <label class="form-label">Tema de los dibujos:</label>
+          <select class="manual-theme-selector" id="manual-theme-select">
+            <!-- Se llena dinámicamente con el catálogo -->
+          </select>
+        </div>
+
+        <!-- Botones de aplicar o cancelar -->
+        <div class="modal-actions">
+          <button type="button" class="chalk-btn btn-modal-cancel" id="btn-cancel-modal">Cancelar</button>
+          <button type="button" class="chalk-btn btn-modal-apply" id="btn-apply-manual">🎨 ¡Cargar en la Pizarra!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
